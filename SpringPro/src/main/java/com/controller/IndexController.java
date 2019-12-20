@@ -15,8 +15,6 @@ import com.pojo.User;
 public class IndexController {
 	@RequestMapping("/index")
 	public Object index(String time, HttpServletRequest req, HttpServletResponse resp, User user){
-		System.out.println("time:"+time);
-		System.out.println("user:"+user.toString());
 		return null;
 	}
 }

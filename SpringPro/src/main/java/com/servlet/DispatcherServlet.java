@@ -59,6 +59,10 @@ public class DispatcherServlet extends HttpServlet{
 		File file = new File(path);
 		scanFile(file);
 	}
+	/**
+	 * 封装执行链
+	 * @param file
+	 */
 	public void scanFile(File file) {
 		if (file.isDirectory()) {
 			for (File f : file.listFiles()) {
@@ -104,72 +108,57 @@ public class DispatcherServlet extends HttpServlet{
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String uri = req.getRequestURI();
-		uri = uri.replace(PRODECT_PREFIX,"");
-		Method mappingMethod = methodMap.get(uri);
-		if(mappingMethod!=null) {
-			Parameter[] parameters = mappingMethod.getParameters();
-			
-			Object[] objects = new Object[parameters.length];
-			
-			for (int i = 0; i < parameters.length; i++) {
-				// 方法的形参名称
-				String name = parameters[i].getName();
-				// 方法的参数类型
-				Class<?> type = parameters[i].getType();
-				if(type.equals(HttpServletRequest.class)) {// request
-					
-					objects[i] = req;
-					
-				}else if(type.equals(HttpServletResponse.class)) {// response
-					
-					objects[i] = resp;
-					
-				}else if(type.equals(String.class)) {
-					
-					objects[i] = req.getParameter(name);
-					
-				}else {// Pojo类型
-					// type 参数类型 比如：User, req 请求对象
-					objects[i] = setPojo(type, req);
-				}
-			}
-			try {
-				mappingMethod.invoke(mappingMethod.getDeclaringClass().newInstance(), objects);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
-				e.printStackTrace();
-				Log4jUtil.getInstance().log.debug("com.tool.ClassUtil.doPost(): 方法回调失败  Err:"+e.getMessage());
-			}
-		}else {
-			resp.setStatus(404);
-		}
+		// 映射到执行方法
+		executeMappingMethod(req, resp);
 	}
 	/**
-	 *反射赋值对象中的值
-	 * @param field
-	 * @param param
-	 * @return
+	 *根据field得类型 转换请求参数
+	 * @param field 反射属性对象
+	 * @param param 请求参数
+	 * @return 根据field得类型 转换请求参数返回
 	 */
 	public Object parseParam(Field field, String param) {
 		if(field==null|param==null)return null;
 		if(field.getType().equals(Integer.class)) {
+			
 			return Integer.parseInt(param);
+			
 		}else if(field.getType().equals(Double.class)) {
+			
 			return Double.parseDouble(param);
+			
 		}else if(field.getType().equals(Character.class)) {
+			
 			return new String().toCharArray()[0];
+			
 		}else if(field.getType().equals(Date.class)) {
+			
 			return DateUtil.parse(DateUtil.DATE_ALL, param);
+			
 		}else if(field.getType().equals(Float.class)) {
+			
 			return Float.parseFloat(param);
+			
 		}else if(field.getType().equals(Boolean.class)) {
+			
 			return Boolean.parseBoolean(param);
+			
 		}else if(field.getType().equals(Long.class)) {
+			
 			return Long.parseLong(param);
+			
 		}else {
+			
 			return param;
+			
 		}
 	}
+	/**
+	 * 把请求中的参数封装到POJO类中
+	 * @param type POJO类
+	 * @param req 请求对象
+	 * @return 封装后的POJO类
+	 */
 	public Object setPojo(Class<?> type, HttpServletRequest req) {
 		Field[] fields = type.getDeclaredFields();
 		Object pojo = null;
@@ -200,5 +189,63 @@ public class DispatcherServlet extends HttpServlet{
 			}
 		}
 		return pojo;
+	}
+	/**
+	 * 映射到指定方法
+	 * @param req 请求对象
+	 * @param resp 响应对象
+	 */
+	public void executeMappingMethod(HttpServletRequest req, HttpServletResponse resp) {
+		String uri = req.getRequestURI();
+		
+		uri = uri.replace(PRODECT_PREFIX,"");
+		
+		Method mappingMethod = methodMap.get(uri);
+		
+		
+		if(mappingMethod!=null) {
+			Object pojo = null;
+			try {
+				pojo = mappingMethod.getDeclaringClass().newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+				Log4jUtil.getInstance().log.debug("com.tool.ClassUtil.executeMappingMethod(): 反射失败  Err:"+e.getMessage());
+			}
+			Parameter[] parameters = mappingMethod.getParameters();
+			
+			Object[] objects = new Object[parameters.length];
+			
+			for (int i = 0; i < parameters.length; i++) {
+				// 方法的形参名称
+				String name = parameters[i].getName();
+				// 方法的参数类型
+				Class<?> type = parameters[i].getType();
+				
+				if(type.equals(HttpServletRequest.class)) {// request
+					
+					objects[i] = req;
+					
+				}else if(type.equals(HttpServletResponse.class)) {// response
+					
+					objects[i] = resp;
+					
+				}else if(type.equals(String.class)) {
+					
+					objects[i] = req.getParameter(name);
+					
+				}else {// Pojo类型
+					// type 参数类型 比如：User, req 请求对象
+					objects[i] = setPojo(type, req);
+				}
+			}
+			try {
+				mappingMethod.invoke(pojo, objects);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
+				Log4jUtil.getInstance().log.debug("com.tool.ClassUtil.doPost(): 方法回调失败  Err:"+e.getMessage());
+			}
+		}else {
+			resp.setStatus(404);
+		}
 	}
 }

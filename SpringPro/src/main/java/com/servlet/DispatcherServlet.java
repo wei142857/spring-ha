@@ -57,16 +57,16 @@ public class DispatcherServlet extends HttpServlet{
 	 */
 	public void scanPath(String path) {
 		File file = new File(path);
-		scanFile(file);
+		initExecutionChain(file);
 	}
 	/**
 	 * ·â×°Ö´ÐÐÁ´
 	 * @param file
 	 */
-	public void scanFile(File file) {
+	public void initExecutionChain(File file) {
 		if (file.isDirectory()) {
 			for (File f : file.listFiles()) {
-				scanFile(f);
+				initExecutionChain(f);
 			}
 		}else {
 			String path = file.getPath();

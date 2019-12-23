@@ -2,7 +2,7 @@
 <beans>
 	<!-- 扫描包 -->
 	<compentscan packages="com"></compentscan>
-	
+	<view prefix="/WEB-INF/page/" suffix=".html"></view>
 	
 	
 </beans>

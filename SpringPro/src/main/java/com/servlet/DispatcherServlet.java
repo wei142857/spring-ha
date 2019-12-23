@@ -22,6 +22,7 @@ import org.dom4j.Element;
 
 import com.annotation.Controller;
 import com.annotation.RequestMapping;
+import com.annotation.ResponseBody;
 import com.modules.constant.FrameStaticAttribute;
 import com.tool.DateUtil;
 import com.tool.DomUtil;
@@ -33,8 +34,9 @@ public class DispatcherServlet extends HttpServlet{
 	private String projectPath = this.getClass().getResource("/").getPath();
 	private DomUtil dom = DomUtil.getInstance();
 	private UrlParseUtil urlParse = UrlParseUtil.getInstance();
-	public static final String PRODECT_PREFIX = "/SpringPro";
 	Map<String, Method> methodMap = new HashMap<String, Method>();
+	private String prefix = "";// 页面前缀
+	private String suffix = "";// 页面后缀
 	//初始化框架
 	/**
 	 *  容器初始化 加载web.xml 根据web.xml中的servlet找到当前映射
@@ -48,7 +50,10 @@ public class DispatcherServlet extends HttpServlet{
 		Element beans = document.getRootElement();
 		/**扫描包标签*/
 		Element compentScan = beans.element(DomUtil.XML_ELEMENT_SCAN);
+		Element view = beans.element(DomUtil.XML_ELEMENT_VIEW);
 		String packages = compentScan.attribute(DomUtil.XML_ATTR_PACKAGES).getValue();
+		prefix = view.attribute(DomUtil.XML_ATTR_PREFIX).getValue();
+		suffix = view.attribute(DomUtil.XML_ATTR_SUFFIX).getValue();
 		scanPath(projectPath+packages);
 	}
 	/**
@@ -197,8 +202,7 @@ public class DispatcherServlet extends HttpServlet{
 	 */
 	public void executeMappingMethod(HttpServletRequest req, HttpServletResponse resp) {
 		String uri = req.getRequestURI();
-		
-		uri = uri.replace(PRODECT_PREFIX,"");
+		uri = uri.replace(req.getContextPath(),"");
 		
 		Method mappingMethod = methodMap.get(uri);
 		
@@ -239,8 +243,14 @@ public class DispatcherServlet extends HttpServlet{
 				}
 			}
 			try {
-				mappingMethod.invoke(pojo, objects);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				Object modelAndView = mappingMethod.invoke(pojo, objects);
+				String context = String.valueOf(modelAndView);
+				if(mappingMethod.isAnnotationPresent(ResponseBody.class)) {
+					resp.getWriter().write(context);
+				}else if(modelAndView.getClass().equals(String.class)) {
+					req.getRequestDispatcher(prefix+context+suffix).forward(req, resp);
+				}
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | IOException | ServletException e) {
 				e.printStackTrace();
 				Log4jUtil.getInstance().log.debug("com.tool.ClassUtil.doPost(): 方法回调失败  Err:"+e.getMessage());
 			}

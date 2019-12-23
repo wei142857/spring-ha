@@ -10,7 +10,10 @@ import org.dom4j.io.SAXReader;
 public class DomUtil {
 	// 扫描包标签名
 	public static final String XML_ELEMENT_SCAN = "compentscan";
+	public static final String XML_ELEMENT_VIEW = "view";
 	public static final String XML_ATTR_PACKAGES = "packages";
+	public static final String XML_ATTR_PREFIX = "prefix";// 前缀属性
+	public static final String XML_ATTR_SUFFIX = "suffix";// 后缀属性
 	
 	private SAXReader saxReader = new SAXReader();
 	private DomUtil() {}

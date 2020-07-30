@@ -1,0 +1,103 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.sbp</groupId>
+	<artifactId>SBP</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<!-- 
+		spring-boot-starter-parent这是一个依赖管理器的pom文件。
+		它的作用就是管理boot需要的所有依赖，从而统一各种jar的版本号，避免了版本不一致而出现的问题。
+		所以，引入其他的依赖就可以省略版本号。当然也可以加上指定的版本号，从而取代默认的。
+	 -->
+	<parent>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-parent</artifactId>
+	    <version>2.0.0.RELEASE</version>
+	</parent>
+	
+	<dependencies>
+		
+		<!-- 
+			spring-boot-starter-web会自动嵌入tomcat容器。
+			同时，springboot也会根据classpath中的dependency来自动配置。
+			比如：spring-boot-starter-web会自动装配tomcat容器；
+			并且会自动从application.properties中读取web应用的配置，如：server.port；
+			如果application.properties没有配置相关的参数，则采用默认的配置信息，如：8080。 
+		-->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		
+		<!-- 
+			spring-boot-starter-data-jpa数据库连接的依赖：可以使用数据持久层框架 Spring Data JPA 操作数据源
+		 -->
+		<!-- <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency> -->
+		
+		<!-- 提供@Date @Getter @Setter等注解 减少不必要代码 仅限于数据库的实体类使用 -->
+		<!-- 详情请看 https://blog.csdn.net/weixin_40753536/article/details/81285046 -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+		
+		<!-- 
+			用于热部署，修改部分代码项目会悄无声息的重启，解决了手动重启的麻烦
+		 	在微服务架构下，每个服务只需要关注自己的业务，代码量很少，启动时间相对会很短
+		 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-devtools</artifactId>
+		</dependency>
+		
+		<!-- 
+			用于监控和管理自身应用信息
+			1. 访问 /actuator/health 可以得到服务的状态
+			2. 控制台会打印信息
+			详情请看 http://c.biancheng.net/view/5316.html
+		 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.alibaba</groupId>
+		    <artifactId>fastjson</artifactId>
+		    <version>1.2.15</version>
+		</dependency>
+		
+		<!-- <dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		</dependency> -->
+		
+	</dependencies>
+	
+	<!-- mvn clean package 即可打包 -->
+	<build>
+	   <plugins>
+		<!-- 打包插件 -->
+		<plugin>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-maven-plugin</artifactId>
+		    <configuration>
+		        <executable>true</executable>
+		        <mainClass>com.sbp.app.Startor</mainClass>
+		    </configuration>
+		</plugin>
+		<!-- 编译插件, 指定JDK版本 -->
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-compiler-plugin</artifactId>
+		    <configuration>
+		        <source>1.8</source>
+		        <target>1.8</target>
+		    </configuration>
+		</plugin>
+	    </plugins>
+	</build>
+  
+</project>
